@@ -31,7 +31,7 @@ const MovieCard = ({ movie }) => {
             md:w-[18rem] md:h-[18rem] /* medium screens */
             lg:w-[20rem] lg:h-[20rem] /* large screens */
             rounded 
-            object-cover
+            object-contain
             transition duration-300 ease-in-out transform
             group-hover:opacity-50
           "

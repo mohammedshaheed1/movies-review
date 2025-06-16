@@ -19,6 +19,7 @@ import AllMovies from './pages/Movies/AllMovies.jsx'
 import MovieDetails from './pages/Movies/MovieDetails.jsx'
 import AllComments from './pages/Admin/AllComments.jsx'
 import AdminDashboard from './pages/Admin/Dashboard/AdminDashboard.jsx'
+import ChatApp from './pages/chat/ChatApp'
 
 
 //Auth
@@ -35,6 +36,7 @@ const router=createBrowserRouter(
             <Route path='/login' element={<Login/>}/>
             <Route path='/register' element={<Register/>}/>
             <Route path='/movies/:id' element={<MovieDetails/>}/>
+            <Route path='/chat' element={<ChatApp/>}/>
           
 
           <Route path='' element={<PrivateRoutes/>}>
