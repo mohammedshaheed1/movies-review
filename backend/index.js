@@ -40,6 +40,9 @@ fs.readdir(frontendDistPath, (err, files) => {
   }
 });
 
+
+
+
 const server = http.createServer(app) // <-- WRAP EXPRESS APP
 //initialize socket.io sercer
 export const io = new Server(server, {
@@ -73,6 +76,10 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
+app.use(express.static(frontendDistPath));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(frontendDistPath, "index.html"));
+});
 
 
 
@@ -104,6 +111,17 @@ app.use('/uploads',express.static(path.resolve(__dirname, '../', 'uploads')))
 //   })
 // })
 
+
+
+// 2️⃣ Return index.html for any route Express doesn’t recognise
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(frontendDistPath, 'index.html'), (err) => {
+//     if (err) {
+//       console.error('Error sending index.html:', err);
+//       res.status(500).send('Internal server error');
+//     }
+//   });
+// });
 
 
 const PORT =process.env.PORT || 3000
