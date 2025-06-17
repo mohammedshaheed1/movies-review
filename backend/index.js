@@ -77,9 +77,6 @@ app.use(express.urlencoded({extended:true}))
 app.use(cookieParser())
 
 app.use(express.static(frontendDistPath));
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(frontendDistPath, "index.html"));
-});
 
 
 
@@ -95,6 +92,12 @@ app.use('/api/v1/messages',messageRouter)
 
 // app.use('/uploads',express.static(path.join(__dirname+"/uploads")))
 app.use('/uploads',express.static(path.resolve(__dirname, '../', 'uploads')))
+
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(frontendDistPath, "index.html"));
+});
+
 
 
 //socket.io events

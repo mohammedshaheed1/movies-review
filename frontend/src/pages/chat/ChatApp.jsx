@@ -349,6 +349,158 @@
 //   )
 // }
 
+// import React, { useEffect, useRef, useState } from "react"
+// import axios from "axios"
+// import { io } from "socket.io-client"
+// import { useSelector } from "react-redux"
+// import { Card } from "@/components/ui/card"
+
+// import UserList from "./UserList"
+// import MessagePanel from "./MessagePanel"
+
+// export default function ChatApp() {
+//   const { userInfo } = useSelector((s) => s.auth)
+//   const currentUser = userInfo
+//   const baseURL   = import.meta.env.VITE_API_URL || ""
+
+//   /* ---------------- state ---------------- */
+//   const [users, setUsers]           = useState([])
+//   const [onlineUsers, setOnlineUsers] = useState([])
+//   const [selectedUser, setSelectedUser] = useState(null)
+//   const [messages, setMessages]     = useState([])
+//   const [text, setText]             = useState("")
+//   /* NEW */  const [showUserListMobile, setShowUserListMobile] = useState(false)
+
+//   const socketRef = useRef(null)
+
+//   /* ---------------- helpers ---------------- */
+//   const fetchUsers = async () => {
+//     const { data } = await axios.get(`${baseURL}/api/v1/messages/users`)
+//     setUsers(
+//       data.users.map((u) => ({
+//         ...u,
+//         unseenCount: data.unseenMessages?.[u._id] || 0,
+//       }))
+//     )
+//   }
+
+//   const fetchMessages = async (u) => {
+//     const { data } = await axios.get(`${baseURL}/api/v1/messages/${u._id}`)
+//     setMessages(data.messages)
+//   }
+
+//   // const connectSocket = () => {
+//   //   if (socketRef.current || !currentUser?._id) return
+//   //   const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
+//   //     query: { userId: currentUser._id },
+//   //   })
+//   //   socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids))
+//   //   socket.on("newMessage", (msg) => {
+//   //     if (msg.senderId === selectedUser?._id) {
+//   //       setMessages((p) => [...p, msg])
+//   //     } else {
+//   //       setUsers((p) =>
+//   //         p.map((u) =>
+//   //           u._id === msg.senderId ? { ...u, unseenCount: (u.unseenCount || 0) + 1 } : u
+//   //         )
+//   //       )
+//   //     }
+//   //   })
+//   //   socketRef.current = socket
+//   // }
+//   const connectSocket = () => {
+//   if (socketRef.current instanceof WebSocket || socketRef.current?.connected) return
+
+//   const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
+//     query: { userId: currentUser._id },
+//   })
+
+//   socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids))
+//   socket.on("newMessage", (msg) => {
+//     if (msg.senderId === selectedUser?._id) {
+//       setMessages((p) => [...p, msg])
+//     } else {
+//       setUsers((p) =>
+//         p.map((u) =>
+//           u._id === msg.senderId ? { ...u, unseenCount: (u.unseenCount || 0) + 1 } : u
+//         )
+//       )
+//     }
+//   })
+
+//   socketRef.current = socket
+// }
+
+
+//   /* ---------------- handlers ---------------- */
+//   const openChat = async (u) => {
+//     setSelectedUser(u)
+//     await fetchMessages(u)
+//     setUsers((p) => p.map((x) => (x._id === u._id ? { ...x, unseenCount: 0 } : x)))
+//     setShowUserListMobile(false)           // close drawer on mobile
+//   }
+
+//   const handleSend = async (e) => {
+//     e.preventDefault()
+//     if (!text.trim() || !selectedUser) return
+//     const { data } = await axios.post(`${baseURL}/api/v1/messages/send/${selectedUser._id}`, {
+//       text,
+//     })
+//     setMessages((p) => [...p, data.newMessage])
+//     setText("")
+//   }
+
+//   /* ---------------- effects ---------------- */
+//   useEffect(fetchUsers, [])
+//   // useEffect(() => {
+//   //   connectSocket()
+//   //   return () => {
+//   //     socketRef.current?.disconnect()
+//   //     socketRef.current = null
+//   //   }
+//   // }, [currentUser])
+//   useEffect(() => {
+//   connectSocket()
+
+//   return () => {
+//     if (socketRef.current && typeof socketRef.current.disconnect === 'function') {
+//       socketRef.current.disconnect()
+//     }
+//     socketRef.current = null
+//   }
+// }, [currentUser])
+
+
+//   if (!currentUser?._id) return <div className="flex items-center justify-center h-full">Loading…</div>
+
+//   return (
+//     <Card className="h-[calc(100vh-5rem)] w-full bg-[#fafafa] md:grid md:grid-cols-[380px_1fr] md:border-x border-gray-300">
+//       {/* ----- User list (sidebar / drawer) ----- */}
+//       <UserList
+//         users={users}
+//         selectedUserId={selectedUser?._id}
+//         onSelectUser={openChat}
+//         showUserListMobile={showUserListMobile}
+//         setShowUserListMobile={setShowUserListMobile}
+//       />
+
+//       {/* ----- Message panel ----- */}
+//       <MessagePanel
+//         currentUser={currentUser}
+//         selectedUser={selectedUser}
+//         messages={messages}
+//         text={text}
+//         onChangeText={setText}
+//         onSend={handleSend}
+//         onBack={() => setSelectedUser(null)}
+//         /* allow panel to reopen drawer */
+//         openUserList={() => setShowUserListMobile(true)}
+//       />
+//     </Card>
+//   )
+// }
+
+
 import React, { useEffect, useRef, useState } from "react"
 import axios from "axios"
 import { io } from "socket.io-client"
@@ -359,21 +511,21 @@ import UserList from "./UserList"
 import MessagePanel from "./MessagePanel"
 
 export default function ChatApp() {
-  const { userInfo } = useSelector((s) => s.auth)
+  const { userInfo } = useSelector((state) => state.auth)
   const currentUser = userInfo
-  const baseURL   = import.meta.env.VITE_API_URL || ""
+  const baseURL = import.meta.env.VITE_API_URL || ""
 
-  /* ---------------- state ---------------- */
-  const [users, setUsers]           = useState([])
+  // State
+  const [users, setUsers] = useState([])
   const [onlineUsers, setOnlineUsers] = useState([])
   const [selectedUser, setSelectedUser] = useState(null)
-  const [messages, setMessages]     = useState([])
-  const [text, setText]             = useState("")
-  /* NEW */  const [showUserListMobile, setShowUserListMobile] = useState(false)
+  const [messages, setMessages] = useState([])
+  const [text, setText] = useState("")
+  const [showUserListMobile, setShowUserListMobile] = useState(false)
 
   const socketRef = useRef(null)
 
-  /* ---------------- helpers ---------------- */
+  // Fetch user list
   const fetchUsers = async () => {
     const { data } = await axios.get(`${baseURL}/api/v1/messages/users`)
     setUsers(
@@ -384,64 +536,89 @@ export default function ChatApp() {
     )
   }
 
+  // Fetch chat messages with selected user
   const fetchMessages = async (u) => {
     const { data } = await axios.get(`${baseURL}/api/v1/messages/${u._id}`)
     setMessages(data.messages)
   }
 
+  // Connect to socket
   const connectSocket = () => {
-    if (socketRef.current || !currentUser?._id) return
+    if (socketRef.current?.connected) return
+
     const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
       query: { userId: currentUser._id },
     })
+
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids))
+
     socket.on("newMessage", (msg) => {
       if (msg.senderId === selectedUser?._id) {
-        setMessages((p) => [...p, msg])
+        setMessages((prev) => [...prev, msg])
       } else {
-        setUsers((p) =>
-          p.map((u) =>
-            u._id === msg.senderId ? { ...u, unseenCount: (u.unseenCount || 0) + 1 } : u
+        setUsers((prev) =>
+          prev.map((u) =>
+            u._id === msg.senderId
+              ? { ...u, unseenCount: (u.unseenCount || 0) + 1 }
+              : u
           )
         )
       }
     })
+
     socketRef.current = socket
   }
 
-  /* ---------------- handlers ---------------- */
+  // Open chat with a user
   const openChat = async (u) => {
     setSelectedUser(u)
     await fetchMessages(u)
-    setUsers((p) => p.map((x) => (x._id === u._id ? { ...x, unseenCount: 0 } : x)))
-    setShowUserListMobile(false)           // close drawer on mobile
+    setUsers((prev) =>
+      prev.map((x) => (x._id === u._id ? { ...x, unseenCount: 0 } : x))
+    )
+    setShowUserListMobile(false)
   }
 
+  // Send message
   const handleSend = async (e) => {
     e.preventDefault()
     if (!text.trim() || !selectedUser) return
-    const { data } = await axios.post(`${baseURL}/api/v1/messages/send/${selectedUser._id}`, {
-      text,
-    })
-    setMessages((p) => [...p, data.newMessage])
+
+    const { data } = await axios.post(
+      `${baseURL}/api/v1/messages/send/${selectedUser._id}`,
+      { text }
+    )
+
+    setMessages((prev) => [...prev, data.newMessage])
     setText("")
   }
 
-  /* ---------------- effects ---------------- */
-  useEffect(fetchUsers, [])
+  // Effects
   useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  useEffect(() => {
+    if (!currentUser?._id) return
+
     connectSocket()
+    const socket = socketRef.current
+
     return () => {
-      socketRef.current?.disconnect()
+      if (socket && typeof socket.disconnect === "function") {
+        socket.disconnect()
+      }
       socketRef.current = null
     }
   }, [currentUser])
 
-  if (!currentUser?._id) return <div className="flex items-center justify-center h-full">Loading…</div>
+  if (!currentUser?._id) {
+    return <div className="flex items-center justify-center h-full">Loading…</div>
+  }
 
   return (
     <Card className="h-[calc(100vh-5rem)] w-full bg-[#fafafa] md:grid md:grid-cols-[380px_1fr] md:border-x border-gray-300">
-      {/* ----- User list (sidebar / drawer) ----- */}
+      {/* User List (sidebar / mobile drawer) */}
       <UserList
         users={users}
         selectedUserId={selectedUser?._id}
@@ -450,7 +627,7 @@ export default function ChatApp() {
         setShowUserListMobile={setShowUserListMobile}
       />
 
-      {/* ----- Message panel ----- */}
+      {/* Message Panel */}
       <MessagePanel
         currentUser={currentUser}
         selectedUser={selectedUser}
@@ -459,9 +636,9 @@ export default function ChatApp() {
         onChangeText={setText}
         onSend={handleSend}
         onBack={() => setSelectedUser(null)}
-        /* allow panel to reopen drawer */
         openUserList={() => setShowUserListMobile(true)}
       />
     </Card>
   )
 }
+
