@@ -509,6 +509,7 @@ import { Card } from "@/components/ui/card"
 
 import UserList from "./UserList"
 import MessagePanel from "./MessagePanel"
+import CallModal from "./CallModal"
 
 export default function ChatApp() {
   const { userInfo } = useSelector((state) => state.auth)
@@ -522,6 +523,11 @@ export default function ChatApp() {
   const [messages, setMessages] = useState([])
   const [text, setText] = useState("")
   const [showUserListMobile, setShowUserListMobile] = useState(false)
+
+
+    // NEW — call modal state
+  const [showCall, setShowCall] = useState(false)
+  const [useVideo, setUseVideo] = useState(false)
 
   const socketRef = useRef(null)
 
@@ -617,6 +623,7 @@ export default function ChatApp() {
   }
 
   return (
+    <>
     <Card className="h-[calc(100vh-5rem)] w-full bg-[#fafafa] md:grid md:grid-cols-[380px_1fr] md:border-x border-gray-300">
       {/* User List (sidebar / mobile drawer) */}
       <UserList
@@ -637,8 +644,21 @@ export default function ChatApp() {
         onSend={handleSend}
         onBack={() => setSelectedUser(null)}
         openUserList={() => setShowUserListMobile(true)}
+        onStartAudio={() => { setUseVideo(false); setShowCall(true) }}
+  onStartVideo={() => { setUseVideo(true);  setShowCall(true) }}
       />
     </Card>
+      {/* -- Call modal, rendered over everything -- */}
+      {showCall && selectedUser && (
+        <CallModal
+          me={currentUser}
+          peerUser={selectedUser}
+          video={useVideo}
+          onClose={() => setShowCall(false)}
+        />
+      )}
+
+      </>
   )
 }
 

@@ -69,6 +69,26 @@ io.on("connection",(socket)=>{
         delete userSocketMap[userId]
         io.emit("getOnlineUsers",Object.keys(userSocketMap))
        })
+
+
+
+         // ===  A. user joins his own room so we can emit directly  ===
+  socket.on("join-call-room", (userId) => socket.join(userId));
+
+  // ===  B. caller sends SDP offer & ICE  ===
+  socket.on("call-user", ({ to, signal, from }) => {
+    io.to(to).emit("incoming-call", { from, signal });
+  });
+
+  // ===  C. callee returns answer SDP & ICE  ===
+  socket.on("accept-call", ({ to, signal }) => {
+    io.to(to).emit("call-accepted", signal);
+  });
+
+  // ===  D. either party ends the call  ===
+  socket.on("end-call", ({ to }) => {
+    io.to(to).emit("call-ended");
+  });
 })
 
 //middleware
