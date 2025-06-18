@@ -36,6 +36,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'buffer': 'buffer/',
+      stream: 'readable-stream', 
     },
   },
   optimizeDeps: {

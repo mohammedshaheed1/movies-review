@@ -73,16 +73,20 @@ io.on("connection",(socket)=>{
 
 
          // ===  A. user joins his own room so we can emit directly  ===
-  socket.on("join-call-room", (userId) => socket.join(userId));
+  socket.on("join-call-room", (userId) => {
+     console.log("room joined:", userId)
+    socket.join(userId)});
 
   // ===  B. caller sends SDP offer & ICE  ===
   socket.on("call-user", ({ to, signal, from }) => {
     io.to(to).emit("incoming-call", { from, signal });
+    console.log("call-user", from,"→",to)
   });
 
   // ===  C. callee returns answer SDP & ICE  ===
   socket.on("accept-call", ({ to, signal }) => {
     io.to(to).emit("call-accepted", signal);
+    console.log("accept-call →",to)
   });
 
   // ===  D. either party ends the call  ===

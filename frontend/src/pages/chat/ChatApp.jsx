@@ -503,7 +503,8 @@
 
 import React, { useEffect, useRef, useState } from "react"
 import axios from "axios"
-import { io } from "socket.io-client"
+// import { io } from "socket.io-client"
+import { getSocket } from "@/socket"
 import { useSelector } from "react-redux"
 import { Card } from "@/components/ui/card"
 
@@ -523,7 +524,7 @@ export default function ChatApp() {
   const [messages, setMessages] = useState([])
   const [text, setText] = useState("")
   const [showUserListMobile, setShowUserListMobile] = useState(false)
-
+  const [incoming, setIncoming] = useState(null); 
 
     // NEW — call modal state
   const [showCall, setShowCall] = useState(false)
@@ -550,11 +551,19 @@ export default function ChatApp() {
 
   // Connect to socket
   const connectSocket = () => {
-    if (socketRef.current?.connected) return
+    // if (socketRef.current?.connected) return
 
-    const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
-      query: { userId: currentUser._id },
-    })
+    // const socket = io(import.meta.env.VITE_SOCKET_URL || "http://localhost:3000", {
+    //   query: { userId: currentUser._id },
+    // })
+
+     if (socketRef.current?.connected) return
+
+  const socket = getSocket(currentUser._id)
+ if (!socket.connected) socket.connect()
+
+  socket.emit("join-call-room", currentUser._id)
+  console.log("JOINED CALL ROOM:", currentUser._id)
 
     socket.on("getOnlineUsers", (ids) => setOnlineUsers(ids))
 
@@ -571,6 +580,20 @@ export default function ChatApp() {
         )
       }
     })
+
+    socket.on("incoming-call", ({ from, signal }) => {
+  console.log("📞 INCOMING CALL from", from);
+  
+  // find the caller’s user object to show avatar/name
+  const callerUser = users.find(u => u._id === from);
+
+  setSelectedUser(callerUser);   // so UI highlights caller
+  setIncoming({ from, signal }); // save SDP offer for CallModal
+  setUseVideo(true);             // or false – your choice
+  setShowCall(true);             // 👉 show CallModal on receiver
+});
+
+
 
     socketRef.current = socket
   }
@@ -611,10 +634,10 @@ export default function ChatApp() {
     const socket = socketRef.current
 
     return () => {
-      if (socket && typeof socket.disconnect === "function") {
-        socket.disconnect()
-      }
-      socketRef.current = null
+      // if (socket && typeof socket.disconnect === "function") {
+      //   socket.disconnect()
+      // }
+      // socketRef.current = null
     }
   }, [currentUser])
 
@@ -653,8 +676,9 @@ export default function ChatApp() {
         <CallModal
           me={currentUser}
           peerUser={selectedUser}
+           incoming={incoming}  
           video={useVideo}
-          onClose={() => setShowCall(false)}
+          onClose={() =>{ setShowCall(false);setIncoming(null)}}
         />
       )}
 

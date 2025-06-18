@@ -22,6 +22,16 @@ import AdminDashboard from './pages/Admin/Dashboard/AdminDashboard.jsx'
 import ChatApp from './pages/chat/ChatApp'
 
 
+import * as buffer from 'buffer'
+import process from 'process'
+
+window.Buffer = buffer.Buffer 
+window.process = process
+window.global = window
+
+
+
+
 //Auth
 
 
